@@ -1,2 +1,6 @@
 # Daydream2740.github.io
-Trying to create first ever game and it shall be a RPG game so enjoy 
+Creating my first ever RPG game here
+Please keep waiting for the finished result
+Sorry for any inconvenience
+# Your's Trully
+# Daydream2740
