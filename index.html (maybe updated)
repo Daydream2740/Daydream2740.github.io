@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple RPG Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f1f1f1;
+            margin: 20px;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #34495e;
+        }
+        button {
+            margin: 10px 0;
+            padding: 10px 20px;
+            background-color: #3498db;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        p {
+            font-size: 18px;
+            color: #2c3e50;
+        }
+        #stats {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Welcome to the RPG Game</h1>
+
+    <button id="chooseJobButton">Choose a Job</button>
+    <p id="jobList"></p>
+
+    <button id="houseShopButton">Browse Houses</button>
+    <p id="houseList"></p>
+
+    <div id="stats">
+        <p id="health">Health: 100</p>
+    </div>
+
+    <script>
+        // Initial game state variables
+        let health = 100;
+
+        // Function to display health
+        function updateHealth() {
+            document.getElementById("health").innerHTML = "Health: " + health;
+        }
+
+        // Functionality for the "Choose a Job" button
+        document.getElementById("chooseJobButton").onclick = function() {
+            const jobOptions = ["Software Engineer", "Data Scientist", "Product Manager"];
+            document.getElementById("jobList").innerHTML = "Available Jobs: " + jobOptions.join(", ");
+        };
+
+        // Functionality for the "Browse Houses" button
+        document.getElementById("houseShopButton").onclick = function() {
+            const houseOptions = ["Bungalow", "Apartment", "Villa"];
+            document.getElementById("houseList").innerHTML = "Available Houses: " + houseOptions.join(", ");
+        };
+
+        // Example to simulate a player taking damage
+        function takeDamage(amount) {
+            health -= amount;
+            updateHealth();
+            if (health <= 0) {
+                alert("Game Over! You've lost all health.");
+                health = 0;
+                updateHealth();
+            }
+        }
+
+        // Simulate damage for testing purposes (e.g., when a player encounters an enemy)
+        setTimeout(function() {
+            takeDamage(20);
+        }, 2000); // Takes 20 damage after 2 seconds
+    </script>
+
+</body>
+</html>
