@@ -25,7 +25,7 @@
             color: #5c6bc0;
             margin-bottom: 20px;
         }
-        .setup-screen, .job-selection, .main-game {
+        .setup-screen, .job-selection, .main-game, .shop-screen, .house-shop-screen {
             display: none;
         }
         .intro-screen {
@@ -107,7 +107,22 @@
             line-height: 20px;
             transition: width 0.5s;
         }
-        .stats-popup {
+        .happiness-bar {
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 10px 0;
+            height: 20px;
+        }
+        .happiness-fill {
+            height: 20px;
+            background-color: #ff9800;
+            border-radius: 5px;
+            text-align: center;
+            color: white;
+            line-height: 20px;
+            transition: width 0.5s;
+        }
+        .stats-popup, .item-details-popup {
             display: none;
             position: fixed;
             top: 50%;
@@ -120,6 +135,8 @@
             z-index: 100;
             max-width: 400px;
             width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
         }
         .overlay {
             display: none;
@@ -155,6 +172,112 @@
             padding: 3px 0;
             border-bottom: 1px solid #eee;
         }
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            position: relative;
+            bottom: -1px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .items-grid, .houses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .item-card, .house-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .item-card:hover, .house-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .item-name, .house-name {
+            font-weight: bold;
+            color: #3f51b5;
+            margin-bottom: 5px;
+        }
+        .item-price, .house-price {
+            color: green;
+            font-weight: bold;
+        }
+        .item-happiness, .house-happiness {
+            color: #ff9800;
+        }
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        .inventory-item {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 8px;
+            background-color: #f9f9f9;
+        }
+        .menu-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .menu-buttons {
+            display: flex;
+        }
+        .item-details-content {
+            padding: 10px 0;
+        }
+        .owned-tag {
+            background-color: #4caf50;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+        .item-action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        .inventory-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .search-bar {
+            margin-bottom: 10px;
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -163,7 +286,7 @@
         
         <!-- Intro Screen -->
         <div id="introScreen" class="intro-screen">
-            <p>Welcome to RPG Job Simulator! Start your career and grow your skills in this simple RPG game.</p>
+            <p>Welcome to RPG Job Simulator! Start your career, buy items to boost your happiness, and even purchase your dream home!</p>
             <button id="startGameBtn">Start Game</button>
         </div>
         
@@ -257,13 +380,15 @@
         
         <!-- Main Game Screen -->
         <div id="mainGameScreen" class="main-game">
-            <div class="flex-row">
-                <div>
+            <div class="menu-bar">
+                <div class="player-info">
                     <h2 id="playerNameDisplay"></h2>
-                    <p>Job: <span id="playerJobDisplay"></span></p>
+                    <p>Job: <span id="playerJobDisplay"></span> | Home: <span id="playerHomeDisplay">Homeless</span></p>
                 </div>
-                <div>
-                    <button id="viewStatsBtn">View Stats</button>
+                <div class="menu-buttons">
+                    <button id="viewStatsBtn">Stats</button>
+                    <button id="shopBtn">Shop</button>
+                    <button id="inventoryBtn">Inventory</button>
                 </div>
             </div>
             
@@ -274,6 +399,10 @@
                 </div>
                 <div class="progress-bar">
                     <div id="xpProgressBar" class="progress-fill" style="width: 0%">0/1000 XP</div>
+                </div>
+                <h4>Happiness: <span id="happinessValue">100</span>%</h4>
+                <div class="happiness-bar">
+                    <div id="happinessBar" class="happiness-fill" style="width: 100%"></div>
                 </div>
             </div>
             
@@ -317,6 +446,57 @@
             <div class="game-section">
                 <h3>Activity Log</h3>
                 <div id="logContainer" class="log-container"></div>
+            </div>
+        </div>
+        
+        <!-- Shop Screen -->
+        <div id="shopScreen" class="shop-screen">
+            <div class="menu-bar">
+                <h2>Shop</h2>
+                <div>
+                    <p>Money: $<span id="shopMoneyDisplay">0</span></p>
+                    <button id="backToGameBtn">Back to Game</button>
+                </div>
+            </div>
+            
+            <div class="tabs">
+                <div class="tab active" data-tab="items">Items</div>
+                <div class="tab" data-tab="houses">Houses</div>
+            </div>
+            
+            <div id="itemsTab" class="tab-content active">
+                <p>Buy items to boost your happiness and improve your quality of life.</p>
+                <input type="text" id="itemSearchBar" class="search-bar" placeholder="Search items...">
+                <div id="itemsGrid" class="items-grid">
+                    <!-- Items will be generated here -->
+                </div>
+            </div>
+            
+            <div id="housesTab" class="tab-content">
+                <p>Purchase a home to significantly increase your baseline happiness.</p>
+                <input type="text" id="houseSearchBar" class="search-bar" placeholder="Search houses...">
+                <div id="housesGrid" class="houses-grid">
+                    <!-- Houses will be generated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Inventory Screen -->
+        <div id="inventoryScreen" class="shop-screen">
+            <div class="menu-bar">
+                <h2>Inventory</h2>
+                <div>
+                    <button id="backFromInventoryBtn">Back to Game</button>
+                </div>
+            </div>
+            
+            <div class="inventory-label">
+                <h3>Your Items</h3>
+                <p>Happiness: <span id="inventoryHappinessValue">100</span>%</p>
+            </div>
+            
+            <div id="inventoryGrid" class="inventory-grid">
+                <!-- Inventory items will be generated here -->
             </div>
         </div>
         
@@ -371,12 +551,37 @@
                 <span id="popupXP" class="stat-value">0/1000</span>
             </div>
             <div class="stat-item">
+                <span>Happiness:</span>
+                <span id="popupHappiness" class="stat-value">100%</span>
+            </div>
+            <div class="stat-item">
+                <span>Home:</span>
+                <span id="popupHome" class="stat-value">Homeless</span>
+            </div>
+            <div class="stat-item">
                 <span>Jobs Completed:</span>
                 <span id="popupJobsCompleted" class="stat-value">0</span>
             </div>
             <div class="stat-item">
                 <span>Money Earned:</span>
                 <span id="popupMoneyEarned" class="stat-value">$0</span>
+            </div>
+            <div class="stat-item">
+                <span>Money Spent:</span>
+                <span id="popupMoneySpent" class="stat-value">$0</span>
+            </div>
+        </div>
+        
+        <!-- Item Details Popup -->
+        <div id="itemDetailsPopup" class="item-details-popup">
+            <button id="closeItemDetailsBtn" class="close-btn">×</button>
+            <h2 id="itemDetailsTitle">Item Name</h2>
+            <div id="itemDetailsContent" class="item-details-content">
+                <!-- Item details will be populated here -->
+            </div>
+            <div id="itemActionButtons" class="item-action-buttons">
+                <button id="buyItemBtn">Buy for $<span id="itemBuyPrice">0</span></button>
+                <button id="useItemBtn">Use Item</button>
             </div>
         </div>
         
@@ -392,7 +597,10 @@
                 level: 1,
                 xp: 0,
                 money: 0,
+                moneyEarned: 0,
+                moneySpent: 0,
                 jobsCompleted: 0,
+                happiness: 100,
                 baseStats: {
                     strength: 5,
                     speed: 5,
@@ -406,12 +614,17 @@
                     organization: 1
                 },
                 statPoints: 4,
-                jobPoints: 0
+                jobPoints: 0,
+                inventory: [],
+                ownedHouse: null
             },
             workCooldown: 0,
             worksSinceLastJobPoint: 0,
             worksForNextJobPoint: getRandomInt(10, 50),
-            selectedJob: null
+            selectedJob: null,
+            lastHappinessDecrease: Date.now(),
+            selectedItem: null,
+            isItemHouse: false
         };
 
         // Level thresholds
@@ -444,13 +657,53 @@
                 }
             }
         };
+        
+        // Shop items
+        const shopItems = [
+            { id: 1, name: "Coffee", price: 100, happiness: 5, duration: 300, description: "A simple coffee to boost your mood for 5 minutes." },
+            { id: 2, name: "Snack", price: 150, happiness: 8, duration: 400, description: "A tasty snack that improves your happiness for a while." },
+            { id: 3, name: "Fast Food Meal", price: 250, happiness: 12, duration: 500, description: "Quick and satisfying food that raises happiness." },
+            { id: 4, name: "Movie Ticket", price: 300, happiness: 15, duration: 600, description: "Enjoy a movie and feel better for 10 minutes." },
+            { id: 5, name: "New Shirt", price: 400, happiness: 10, duration: 1200, description: "A fresh look that makes you feel good for 20 minutes." },
+            { id: 6, name: "Restaurant Dinner", price: 500, happiness: 20, duration: 900, description: "A quality meal that boosts happiness significantly." },
+            { id: 7, name: "Video Game", price: 600, happiness: 25, duration: 1800, description: "Hours of fun that keep your happiness up for 30 minutes." },
+            { id: 8, name: "Concert Ticket", price: 800, happiness: 30, duration: 1500, description: "Experience live music and feel great for 25 minutes." },
+            { id: 9, name: "Premium Headphones", price: 1000, happiness: 15, duration: 3600, description: "Enjoy your music better for a whole hour." },
+            { id: 10, name: "Gym Membership", price: 1200, happiness: 20, duration: 7200, description: "Stay fit and happy for 2 hours." },
+            { id: 11, name: "Smartphone", price: 1500, happiness: 25, duration: 5400, description: "Stay connected and entertained for 1.5 hours." },
+            { id: 12, name: "Weekend Trip", price: 2000, happiness: 35, duration: 10800, description: "A quick getaway that refreshes you for 3 hours." },
+            { id: 13, name: "Designer Clothes", price: 2500, happiness: 30, duration: 14400, description: "Look your best and feel confident for 4 hours." },
+            { id: 14, name: "Gaming Console", price: 3000, happiness: 40, duration: 18000, description: "Endless entertainment for 5 hours of happiness." },
+            { id: 15, name: "Home Theater System", price: 4000, happiness: 45, duration: 21600, description: "Bring the cinema experience home for 6 hours of joy." },
+            { id: 16, name: "Laptop", price: 5000, happiness: 35, duration: 28800, description: "A powerful computer that keeps you happy for 8 hours." },
+            { id: 17, name: "Vacation Package", price: 6000, happiness: 50, duration: 36000, description: "A refreshing break that boosts happiness for 10 hours." },
+            { id: 18, name: "Smart TV", price: 7000, happiness: 40, duration: 43200, description: "Endless entertainment for 12 hours of elevated mood." },
+            { id: 19, name: "Luxury Watch", price: 8000, happiness: 45, duration: 50400, description: "Feel prestigious and happy for 14 hours." },
+            { id: 20, name: "High-end Bicycle", price: 10000, happiness: 55, duration: 57600, description: "Exercise in style and maintain happiness for 16 hours." }
+        ];
+        
+        // Houses
+        const houses = [
+            { id: 101, name: "Small Studio Apartment", price: 10000, happiness: 10, description: "A tiny but cozy place to call home." },
+            { id: 102, name: "Basic Apartment", price: 50000, happiness: 15, description: "A standard one-bedroom apartment in an average neighborhood." },
+            { id: 103, name: "Comfortable Condo", price: 100000, happiness: 20, description: "A modern condominium with essential amenities." },
+            { id: 104, name: "Suburban Home", price: 250000, happiness: 30, description: "A family house in a quiet suburban area." },
+            { id: 105, name: "Townhouse", price: 500000, happiness: 40, description: "A spacious multi-level home in a good location." },
+            { id: 106, name: "Luxury Apartment", price: 1000000, happiness: 50, description: "A high-end apartment with premium finishes and amenities." },
+            { id: 107, name: "Beach House", price: 2000000, happiness: 60, description: "A relaxing home with ocean views and beach access." },
+            { id: 108, name: "Large Estate", price: 5000000, happiness: 70, description: "A grand property with extensive grounds and luxury features." },
+            { id: 109, name: "Penthouse Suite", price: 7500000, happiness: 80, description: "A top-floor luxury residence with panoramic city views." },
+            { id: 110, name: "Private Mansion", price: 10000000, happiness: 100, description: "The ultimate luxury home with every amenity imaginable." }
+        ];
 
         // DOM Elements
         const screens = {
             intro: document.getElementById("introScreen"),
             setup: document.getElementById("setupScreen"),
             jobSelection: document.getElementById("jobSelectionScreen"),
-            mainGame: document.getElementById("mainGameScreen")
+            mainGame: document.getElementById("mainGameScreen"),
+            shop: document.getElementById("shopScreen"),
+            inventory: document.getElementById("inventoryScreen")
         };
 
         // Utility functions
@@ -474,308 +727,4 @@
                 gameState.player.jobStats.organization) * 0.02
             );
             
-            return Math.floor(baseXp * skillBonus);
-        }
-        
-        function calculateWage() {
-            let job = jobs[gameState.player.job];
-            let baseWage = job.baseWage;
-            
-            // Bonuses from relevant stats
-            let statBonus = 1;
-            if (gameState.player.job === "office") {
-                statBonus += gameState.player.jobStats.intelligence * 0.05;
-                statBonus += gameState.player.jobStats.organization * 0.03;
-            } else if (gameState.player.job === "construction") {
-                statBonus += gameState.player.baseStats.strength * 0.03;
-                statBonus += gameState.player.jobStats.manualLabor * 0.05;
-            } else if (gameState.player.job === "delivery") {
-                statBonus += gameState.player.baseStats.speed * 0.03;
-                statBonus += gameState.player.jobStats.timeManagement * 0.05;
-            }
-            
-            return Math.floor(baseWage * statBonus);
-        }
-        
-        function addLogEntry(message) {
-            const logContainer = document.getElementById("logContainer");
-            const logEntry = document.createElement("div");
-            logEntry.className = "log-entry";
-            logEntry.textContent = message;
-            logContainer.prepend(logEntry);
-            
-            // Limit log entries to 15
-            while (logContainer.children.length > 15) {
-                logContainer.removeChild(logContainer.lastChild);
-            }
-        }
-        
-        function checkLevelUp() {
-            const nextLevelXp = calculateXpToNextLevel();
-            if (gameState.player.xp >= nextLevelXp && gameState.player.level < levelThresholds.length) {
-                gameState.player.level++;
-                addLogEntry(`Congratulations! You have reached level ${gameState.player.level}!`);
-                updateGameUI();
-                return true;
-            }
-            return false;
-        }
-        
-        // UI update functions
-        function updateGameUI() {
-            // Update player info
-            document.getElementById("playerNameDisplay").textContent = gameState.player.name;
-            document.getElementById("playerJobDisplay").textContent = jobs[gameState.player.job].title;
-            document.getElementById("playerLevel").textContent = gameState.player.level;
-            document.getElementById("playerMoney").textContent = gameState.player.money;
-            
-            // Update XP bar
-            const nextLevelXp = calculateXpToNextLevel();
-            const xpProgress = Math.min((gameState.player.xp / nextLevelXp) * 100, 100);
-            document.getElementById("xpProgressBar").style.width = `${xpProgress}%`;
-            document.getElementById("xpProgressBar").textContent = `${gameState.player.xp}/${nextLevelXp} XP`;
-            
-            // Update job points
-            document.getElementById("jobPointsAvailable").textContent = gameState.player.jobPoints;
-            
-            // Update job stats values
-            document.getElementById("manualLaborValue").textContent = gameState.player.jobStats.manualLabor;
-            document.getElementById("intelligenceValue").textContent = gameState.player.jobStats.intelligence;
-            document.getElementById("timeManagementValue").textContent = gameState.player.jobStats.timeManagement;
-            document.getElementById("organizationValue").textContent = gameState.player.jobStats.organization;
-            
-            // Update job skill buttons
-            const jobStatButtons = document.querySelectorAll(".job-stat-btn");
-            jobStatButtons.forEach(button => {
-                button.disabled = gameState.player.jobPoints <= 0;
-            });
-            
-            // Update stats popup if open
-            updateStatsPopup();
-        }
-        
-        function updateStatsPopup() {
-            document.getElementById("popupStrength").textContent = gameState.player.baseStats.strength;
-            document.getElementById("popupSpeed").textContent = gameState.player.baseStats.speed;
-            document.getElementById("popupDexterity").textContent = gameState.player.baseStats.dexterity;
-            document.getElementById("popupDefense").textContent = gameState.player.baseStats.defense;
-            
-            document.getElementById("popupManualLabor").textContent = gameState.player.jobStats.manualLabor;
-            document.getElementById("popupIntelligence").textContent = gameState.player.jobStats.intelligence;
-            document.getElementById("popupTimeManagement").textContent = gameState.player.jobStats.timeManagement;
-            document.getElementById("popupOrganization").textContent = gameState.player.jobStats.organization;
-            
-            document.getElementById("popupLevel").textContent = gameState.player.level;
-            document.getElementById("popupXP").textContent = `${gameState.player.xp}/${calculateXpToNextLevel()}`;
-            document.getElementById("popupJobsCompleted").textContent = gameState.player.jobsCompleted;
-            document.getElementById("popupMoneyEarned").textContent = `$${gameState.player.money}`;
-        }
-        
-        function updateCooldownUI() {
-            const workBtn = document.getElementById("workBtn");
-            const cooldownDisplay = document.getElementById("workCooldown");
-            
-            if (gameState.workCooldown > 0) {
-                workBtn.disabled = true;
-                cooldownDisplay.textContent = `(Ready in ${gameState.workCooldown}s)`;
-            } else {
-                workBtn.disabled = false;
-                cooldownDisplay.textContent = "(Ready)";
-            }
-        }
-        
-        // Initialize setup screen
-        function initSetupScreen() {
-            document.getElementById("statPointsAvailable").textContent = gameState.player.statPoints;
-            
-            // Initialize base stat buttons
-            const statButtons = document.querySelectorAll(".stat-btn");
-            statButtons.forEach(button => {
-                button.addEventListener("click", function() {
-                    if (gameState.player.statPoints > 0) {
-                        const statType = this.id.replace("add", "").toLowerCase();
-                        gameState.player.baseStats[statType]++;
-                        gameState.player.statPoints--;
-                        document.getElementById(`${statType}Value`).textContent = gameState.player.baseStats[statType];
-                        document.getElementById("statPointsAvailable").textContent = gameState.player.statPoints;
-                        
-                        // Enable confirm button if name is entered and all points are used
-                        const playerName = document.getElementById("playerName").value;
-                        document.getElementById("confirmCharacterBtn").disabled = !(playerName.trim() && gameState.player.statPoints === 0);
-                    }
-                    
-                    // Disable buttons if no points left
-                    if (gameState.player.statPoints === 0) {
-                        statButtons.forEach(btn => btn.disabled = true);
-                    }
-                });
-            });
-            
-            // Name input validation
-            document.getElementById("playerName").addEventListener("input", function() {
-                const playerName = this.value.trim();
-                const allPointsUsed = gameState.player.statPoints === 0;
-                document.getElementById("confirmCharacterBtn").disabled = !(playerName && allPointsUsed);
-            });
-            
-            // Confirm character button
-            document.getElementById("confirmCharacterBtn").addEventListener("click", function() {
-                gameState.player.name = document.getElementById("playerName").value.trim();
-                showScreen("jobSelection");
-            });
-        }
-        
-        // Initialize job selection screen
-        function initJobSelectionScreen() {
-            const jobCards = document.querySelectorAll(".job-card");
-            jobCards.forEach(card => {
-                card.addEventListener("click", function() {
-                    // Remove selected class from all cards
-                    jobCards.forEach(c => c.classList.remove("selected"));
-                    // Add selected class to clicked card
-                    this.classList.add("selected");
-                    // Update selected job
-                    gameState.selectedJob = this.dataset.job;
-                    // Enable confirm button
-                    document.getElementById("confirmJobBtn").disabled = false;
-                });
-            });
-            
-            // Confirm job button
-            document.getElementById("confirmJobBtn").addEventListener("click", function() {
-                gameState.player.job = gameState.selectedJob;
-                
-                // Apply job stat boosts
-                const jobBoosts = jobs[gameState.player.job].statBoosts;
-                for (const [stat, boost] of Object.entries(jobBoosts)) {
-                    if (gameState.player.baseStats.hasOwnProperty(stat)) {
-                        gameState.player.baseStats[stat] += boost;
-                    } else if (gameState.player.jobStats.hasOwnProperty(stat)) {
-                        gameState.player.jobStats[stat] += boost;
-                    }
-                }
-                
-                showScreen("mainGame");
-                updateGameUI();
-            });
-        }
-        
-        // Initialize main game screen
-        function initMainGameScreen() {
-            // Work button
-            document.getElementById("workBtn").addEventListener("click", function() {
-                if (gameState.workCooldown === 0) {
-                    // Calculate rewards
-                    const xpGain = calculateXpGain();
-                    const wage = calculateWage();
-                    
-                    // Apply rewards
-                    gameState.player.xp += xpGain;
-                    gameState.player.money += wage;
-                    gameState.player.jobsCompleted++;
-                    
-                    // Start cooldown
-                    gameState.workCooldown = 10;
-                    const cooldownInterval = setInterval(() => {
-                        gameState.workCooldown--;
-                        updateCooldownUI();
-                        if (gameState.workCooldown <= 0) {
-                            clearInterval(cooldownInterval);
-                        }
-                    }, 1000);
-                    
-                    // Log activity
-                    addLogEntry(`You worked and earned $${wage} and ${xpGain} XP!`);
-                    
-                    // Check for job point gain
-                    gameState.worksSinceLastJobPoint++;
-                    if (gameState.worksSinceLastJobPoint >= gameState.worksForNextJobPoint) {
-                        gameState.player.jobPoints++;
-                        gameState.worksSinceLastJobPoint = 0;
-                        gameState.worksForNextJobPoint = getRandomInt(10, 50);
-                        addLogEntry(`You gained a job point! You now have ${gameState.player.jobPoints} job points.`);
-                    }
-                    
-                    // Check for level up
-                    checkLevelUp();
-                    
-                    // Update UI
-                    updateGameUI();
-                    updateCooldownUI();
-                }
-            });
-            
-            // Job stat buttons
-            const jobStatButtons = document.querySelectorAll(".job-stat-btn");
-            jobStatButtons.forEach(button => {
-                button.addEventListener("click", function() {
-                    if (gameState.player.jobPoints > 0) {
-                        const statType = this.id.replace("add", "");
-                        const statKey = statType.charAt(0).toLowerCase() + statType.slice(1);
-                        gameState.player.jobStats[statKey]++;
-                        gameState.player.jobPoints--;
-                        document.getElementById(`${statKey}Value`).textContent = gameState.player.jobStats[statKey];
-                        document.getElementById("jobPointsAvailable").textContent = gameState.player.jobPoints;
-                        
-                        // Disable buttons if no points left
-                        if (gameState.player.jobPoints === 0) {
-                            jobStatButtons.forEach(btn => btn.disabled = true);
-                        }
-                        
-                        updateGameUI();
-                    }
-                });
-            });
-            
-            // Stats button
-            document.getElementById("viewStatsBtn").addEventListener("click", showStatsPopup);
-            document.getElementById("closeStatsBtn").addEventListener("click", hideStatsPopup);
-            document.getElementById("overlay").addEventListener("click", hideStatsPopup);
-            
-            // Initial UI update
-            updateGameUI();
-            updateCooldownUI();
-        }
-        
-        function showStatsPopup() {
-            updateStatsPopup();
-            document.getElementById("statsPopup").style.display = "block";
-            document.getElementById("overlay").style.display = "block";
-        }
-        
-        function hideStatsPopup() {
-            document.getElementById("statsPopup").style.display = "none";
-            document.getElementById("overlay").style.display = "none";
-        }
-        
-        function showScreen(screenName) {
-            // Hide all screens
-            for (const screen in screens) {
-                screens[screen].style.display = "none";
-            }
-            
-            // Show selected screen
-            screens[screenName].style.display = "block";
-        }
-        
-        // Initialize game
-        function initGame() {
-            // Start button
-            document.getElementById("startGameBtn").addEventListener("click", function() {
-                showScreen("setup");
-            });
-            
-            // Initialize all screens
-            initSetupScreen();
-            initJobSelectionScreen();
-            initMainGameScreen();
-            
-            // Show intro screen
-            showScreen("intro");
-        }
-        
-        // Start the game when page loads
-        window.onload = initGame;
-    </script>
-</body>
-</html>
+            // Happiness bonus (scales from 50% to 150% based on happiness
