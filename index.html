@@ -3,13 +3,1006 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RPG Life Simulator</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>RPG Career Simulator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .panel {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #login-panel, #character-creation {
+            max-width: 400px;
+            margin: 100px auto;
+        }
+
+        .job-card {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .selected-job {
+            border: 2px solid #27ae60;
+            background-color: #eafaf1;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+
+        progress {
+            width: 100%;
+            height: 20px;
+            margin: 5px 0;
+        }
+
+        #player-money {
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        #player-level {
+            font-weight: bold;
+            color: #8e44ad;
+        }
+
+        #player-happiness {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .shop-item, .house-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shop-item:hover, .house-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .tab-button {
+            background-color: #ddd;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        .tab-button.active {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        #leaderboard-list {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #leaderboard-list th, #leaderboard-list td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #leaderboard-list th {
+            background-color: #3498db;
+            color: white;
+        }
+
+        #leaderboard-list tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #admin-panel input {
+            margin: 5px 0;
+            padding: 8px;
+            width: 100%;
+        }
+
+        .countdown {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+    </style>
 </head>
 <body>
-    <div id="game-container">
-        <!-- Game content will be dynamically loaded here -->
+    <!-- Login Panel -->
+    <div id="login-panel" class="panel">
+        <h2>RPG Career Simulator</h2>
+        <div>
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button id="login-button">Login</button>
+            <button id="register-button">Register</button>
+        </div>
+        <p id="login-message"></p>
     </div>
-    <script src="game.js"></script>
+
+    <!-- Character Creation -->
+    <div id="character-creation" class="panel hidden">
+        <h2>Create Your Character</h2>
+        <input type="text" id="player-name" placeholder="Your Character Name" required>
+
+        <h3>Assign Stat Points (4 remaining)</h3>
+        <div class="stat-item">
+            <span>Strength: <span id="strength-value">0</span></span>
+            <div>
+                <button id="strength-minus">-</button>
+                <button id="strength-plus">+</button>
+            </div>
+        </div>
+        <div class="stat-item">
+            <span>Defense: <span id="defense-value">0</span></span>
+            <div>
+                <button id="defense-minus">-</button>
+                <button id="defense-plus">+</button>
+            </div>
+        </div>
+        <div class="stat-item">
+            <span>Speed: <span id="speed-value">0</span></span>
+            <div>
+                <button id="speed-minus">-</button>
+                <button id="speed-plus">+</button>
+            </div>
+        </div>
+        <div class="stat-item">
+            <span>Dexterity: <span id="dexterity-value">0</span></span>
+            <div>
+                <button id="dexterity-minus">-</button>
+                <button id="dexterity-plus">+</button>
+            </div>
+        </div>
+        <p>Points remaining: <span id="points-remaining">4</span></p>
+        <button id="create-character" disabled>Create Character</button>
+    </div>
+
+    <!-- Main Game Interface (Hidden initially) -->
+    <div id="game-interface" class="hidden">
+        <h1>RPG Career Simulator</h1>
+        <div class="container">
+            <!-- Player Info Panel -->
+            <div class="panel">
+                <h2>Player Info</h2>
+                <p>Name: <span id="display-name"></span></p>
+                <p>Money: $<span id="player-money">0</span></p>
+                <p>Level: <span id="player-level">1</span></p>
+                <p>XP: <span id="player-xp">0</span>/<span id="player-next-level">1000</span></p>
+                <progress id="xp-progress" value="0" max="1000"></progress>
+                <p>Happiness: <span id="player-happiness">100</span>%</p>
+                <progress id="happiness-progress" value="100" max="100"></progress>
+                <button id="show-stats-button">Show Stats</button>
+                <div id="stats-display" class="hidden">
+                    <h3>Base Stats</h3>
+                    <p>Strength: <span id="stat-strength">0</span></p>
+                    <p>Defense: <span id="stat-defense">0</span></p>
+                    <p>Speed: <span id="stat-speed">0</span></p>
+                    <p>Dexterity: <span id="stat-dexterity">0</span></p>
+
+                    <h3>Job Stats</h3>
+                    <p>Manual Labor: <span id="job-manual-labor">0</span></p>
+                    <p>Intelligence: <span id="job-intelligence">0</span></p>
+                    <p>Time Management: <span id="job-time-management">0</span></p>
+                    <p>Organization: <span id="job-organization">0</span></p>
+
+                    <p>Job Points: <span id="job-points">0</span></p>
+                    <div class="hidden" id="job-points-controls">
+                        <button id="add-manual-labor">+Manual Labor</button>
+                        <button id="add-intelligence">+Intelligence</button>
+                        <button id="add-time-management">+Time Management</button>
+                        <button id="add-organization">+Organization</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Panel -->
+            <div class="panel" id="job-panel">
+                <h2>Choose a Job</h2>
+                <div id="job-selection">
+                    <div class="job-card" data-job="office">
+                        <h3>Office Worker</h3>
+                        <p>Salary: $50 per work</p>
+                        <p>Stat Boosts: +1 Intelligence, +1 Organization</p>
+                    </div>
+                    <div class="job-card" data-job="construction">
+                        <h3>Construction Worker</h3>
+                        <p>Salary: $45 per work</p>
+                        <p>Stat Boosts: +2 Strength, +1 Manual Labor</p>
+                    </div>
+                    <div class="job-card" data-job="delivery">
+                        <h3>Delivery Driver</h3>
+                        <p>Salary: $40 per work</p>
+                        <p>Stat Boosts: +1 Speed, +1 Time Management, +1 Dexterity</p>
+                    </div>
+                </div>
+                <button id="select-job" disabled>Select Job</button>
+
+                <div id="work-controls" class="hidden">
+                    <h3>Your Job: <span id="current-job">None</span></h3>
+                    <button id="work-button">Work (30s cooldown)</button>
+                    <p id="work-cooldown" class="countdown"></p>
+                    <p id="work-result"></p>
+                </div>
+            </div>
+
+            <!-- Shop Panel -->
+            <div class="panel">
+                <h2>Shop</h2>
+                <div class="tab-buttons">
+                    <button class="tab-button active" data-tab="items">Items</button>
+                    <button class="tab-button" data-tab="houses">Houses</button>
+                </div>
+
+                <div id="items-tab" class="tab-content active">
+                    <div id="items-list">
+                        <!-- Items will be populated here -->
+                    </div>
+                </div>
+
+                <div id="houses-tab" class="tab-content">
+                    <div id="houses-list">
+                        <!-- Houses will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboard Panel -->
+            <div class="panel">
+                <h2>Leaderboard</h2>
+                <table id="leaderboard-list">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Level</th>
+                            <th>Money</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <!-- Leaderboard entries will go here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Admin Panel (Hidden) -->
+            <div id="admin-panel" class="panel hidden">
+                <h2>Admin Controls</h2>
+                <input type="text" id="admin-username" placeholder="Username to modify">
+                <button id="admin-delete-user">Delete User</button>
+                <div>
+                    <input type="text" id="admin-new-name" placeholder="New username">
+                    <button id="admin-change-name">Change Username</button>
+                </div>
+                <p id="admin-message"></p>
+            </div>
+        </div>
+
+        <div class="panel">
+            <input type="text" id="admin-code" placeholder="Enter admin code">
+            <button id="admin-login">Access Admin Panel</button>
+        </div>
+
+        <button id="save-game">Save Game</button>
+        <button id="logout">Logout</button>
+    </div>
+
+    <script>
+        // Game data
+        let gameData = {
+            // Player info
+            player: {
+                name: "",
+                money: 0,
+                level: 1,
+                xp: 0,
+                happiness: 100,
+                job: null,
+                stats: {
+                    strength: 0,
+                    defense: 0,
+                    speed: 0,
+                    dexterity: 0
+                },
+                jobStats: {
+                    manualLabor: 0,
+                    intelligence: 0,
+                    timeManagement: 0,
+                    organization: 0
+                },
+                spoints: 4,
+                jpoints: 0,
+                workCount: 0,
+                inventory: [],
+                house: null
+            },
+
+            // Game state
+            workCooldown: 0,
+            nextLevelXp: 1000,
+            isWorking: false,
+
+            // Jobs data
+            jobs: {
+                office: {
+                    name: "Office Worker",
+                    salary: 50,
+                    statBoosts: {
+                        intelligence: 1,
+                        organization: 1
+                    }
+                },
+                construction: {
+                    name: "Construction Worker",
+                    salary: 45,
+                    statBoosts: {
+                        strength: 2,
+                        manualLabor: 1
+                    }
+                },
+                delivery: {
+                    name: "Delivery Driver",
+                    salary: 40,
+                    statBoosts: {
+                        speed: 1,
+                        timeManagement: 1,
+                        dexterity: 1
+                    }
+                }
+            },
+
+            // Shop items
+            shopItems: [
+                { id: 1, name: "Coffee", price: 100, happiness: 5 },
+                { id: 2, name: "Fast Food Meal", price: 150, happiness: 8 },
+                { id: 3, name: "Movie Ticket", price: 200, happiness: 12 },
+                { id: 4, name: "Video Game", price: 300, happiness: 15 },
+                { id: 5, name: "Fancy Dinner", price: 400, happiness: 20 },
+                { id: 6, name: "Concert Ticket", price: 500, happiness: 25 },
+                { id: 7, name: "Weekend Getaway", price: 800, happiness: 30 },
+                { id: 8, name: "Smartphone", price: 1000, happiness: 35 },
+                { id: 9, name: "Gaming Console", price: 1500, happiness: 40 },
+                { id: 10, name: "Smart TV", price: 2000, happiness: 45 },
+                { id: 11, name: "Home Theater System", price: 2500, happiness: 50 },
+                { id: 12, name: "Laptop", price: 3000, happiness: 55 },
+                { id: 13, name: "Luxury Watch", price: 3500, happiness: 60 },
+                { id: 14, name: "Designer Clothes", price: 4000, happiness: 65 },
+                { id: 15, name: "Vacation Package", price: 5000, happiness: 70 },
+                { id: 16, name: "High-End Bike", price: 6000, happiness: 75 },
+                { id: 17, name: "Jewelry Set", price: 7000, happiness: 80 },
+                { id: 18, name: "Professional Camera", price: 8000, happiness: 85 },
+                { id: 19, name: "Gaming PC", price: 9000, happiness: 90 },
+                { id: 20, name: "Private Jet Tour", price: 10000, happiness: 100 }
+            ],
+
+            // Houses
+            houses: [
+                { id: 1, name: "Studio Apartment", price: 10000, happiness: 30 },
+                { id: 2, name: "One Bedroom Flat", price: 25000, happiness: 50 },
+                { id: 3, name: "Two Bedroom Apartment", price: 60000, happiness: 80 },
+                { id: 4, name: "Small House", price: 120000, happiness: 100 },
+                { id: 5, name: "Townhouse", price: 250000, happiness: 130 },
+                { id: 6, name: "Suburban Home", price: 500000, happiness: 160 },
+                { id: 7, name: "Large Family House", price: 1000000, happiness: 200 },
+                { id: 8, name: "Luxury Apartment", price: 2500000, happiness: 250 },
+                { id: 9, name: "Beach House", price: 5000000, happiness: 300 },
+                { id: 10, name: "Mansion", price: 10000000, happiness: 400 }
+            ],
+
+            // Users database
+            users: {}
+        };
+
+        // Current logged in user
+        let currentUser = null;
+
+        // DOM elements
+        const elements = {
+            // Login elements
+            loginPanel: document.getElementById('login-panel'),
+            username: document.getElementById('username'),
+            password: document.getElementById('password'),
+            loginButton: document.getElementById('login-button'),
+            registerButton: document.getElementById('register-button'),
+            loginMessage: document.getElementById('login-message'),
+
+            // Character creation elements
+            characterCreation: document.getElementById('character-creation'),
+            playerName: document.getElementById('player-name'),
+            strengthValue: document.getElementById('strength-value'),
+            strengthPlus: document.getElementById('strength-plus'),
+            strengthMinus: document.getElementById('strength-minus'),
+            defenseValue: document.getElementById('defense-value'),
+            defensePlus: document.getElementById('defense-plus'),
+            defenseMinus: document.getElementById('defense-minus'),
+            speedValue: document.getElementById('speed-value'),
+            speedPlus: document.getElementById('speed-plus'),
+            speedMinus: document.getElementById('speed-minus'),
+            dexterityValue: document.getElementById('dexterity-value'),
+            dexterityPlus: document.getElementById('dexterity-plus'),
+            dexterityMinus: document.getElementById('dexterity-minus'),
+            pointsRemaining: document.getElementById('points-remaining'),
+            createCharacter: document.getElementById('create-character'),
+
+            // Game interface elements
+            gameInterface: document.getElementById('game-interface'),
+            displayName: document.getElementById('display-name'),
+            playerMoney: document.getElementById('player-money'),
+            playerLevel: document.getElementById('player-level'),
+            playerXp: document.getElementById('player-xp'),
+            playerNextLevel: document.getElementById('player-next-level'),
+            xpProgress: document.getElementById('xp-progress'),
+            playerHappiness: document.getElementById('player-happiness'),
+            happinessProgress: document.getElementById('happiness-progress'),
+            showStatsButton: document.getElementById('show-stats-button'),
+            statsDisplay: document.getElementById('stats-display'),
+            statStrength: document.getElementById('stat-strength'),
+            statDefense: document.getElementById('stat-defense'),
+            statSpeed: document.getElementById('stat-speed'),
+            statDexterity: document.getElementById('stat-dexterity'),
+            jobManualLabor: document.getElementById('job-manual-labor'),
+            jobIntelligence: document.getElementById('job-intelligence'),
+            jobTimeManagement: document.getElementById('job-time-management'),
+            jobOrganization: document.getElementById('job-organization'),
+            jobPoints: document.getElementById('job-points'),
+            jobPointsControls: document.getElementById('job-points-controls'),
+            addManualLabor: document.getElementById('add-manual-labor'),
+            addIntelligence: document.getElementById('add-intelligence'),
+            addTimeManagement: document.getElementById('add-time-management'),
+            addOrganization: document.getElementById('add-organization'),
+
+            // Job elements
+            jobPanel: document.getElementById('job-panel'),
+            jobCards: document.querySelectorAll('.job-card'),
+            selectJob: document.getElementById('select-job'),
+            workControls: document.getElementById('work-controls'),
+            currentJob: document.getElementById('current-job'),
+            workButton: document.getElementById('work-button'),
+            workCooldown: document.getElementById('work-cooldown'),
+            workResult: document.getElementById('work-result'),
+
+            // Shop elements
+            tabButtons: document.querySelectorAll('.tab-button'),
+            tabContents: document.querySelectorAll('.tab-content'),
+            itemsList: document.getElementById('items-list'),
+            housesList: document.getElementById('houses-list'),
+
+            // Leaderboard elements
+            leaderboardBody: document.getElementById('leaderboard-body'),
+
+            // Admin elements
+            adminCode: document.getElementById('admin-code'),
+            adminLogin: document.getElementById('admin-login'),
+            adminPanel: document.getElementById('admin-panel'),
+            adminUsername: document.getElementById('admin-username'),
+            adminDeleteUser: document.getElementById('admin-delete-user'),
+            adminNewName: document.getElementById('admin-new-name'),
+            adminChangeName: document.getElementById('admin-change-name'),
+            adminMessage: document.getElementById('admin-message'),
+
+            // Other controls
+            saveGame: document.getElementById('save-game'),
+            logout: document.getElementById('logout')
+        };
+
+        // Initialize the game
+        function initGame() {
+            // Load game data from local storage
+            loadGameData();
+
+            // Set up event listeners
+            setupEventListeners();
+
+            // Initialize shop
+            initShop();
+        }
+
+        // Load game data from local storage
+        function loadGameData() {
+            const savedData = localStorage.getItem('rpgGame');
+            if (savedData) {
+                try {
+                    gameData = JSON.parse(savedData);
+                } catch (error) {
+                    console.error('Error loading game data:', error);
+                }
+            }
+        }
+
+        // Save game data to local storage
+        function saveGameData() {
+            try {
+                localStorage.setItem('rpgGame', JSON.stringify(gameData));
+                showMessage('Game saved successfully!');
+            } catch (error) {
+                console.error('Error saving game data:', error);
+                showMessage('Error saving game data.');
+            }
+        }
+
+        // Show a temporary message
+        function showMessage(message, element = elements.workResult) {
+            element.textContent = message;
+            setTimeout(() => {
+                element.textContent = '';
+            }, 3000);
+        }
+
+        // Update player stats display
+        function updateStatsDisplay() {
+            elements.statStrength.textContent = gameData.player.stats.strength;
+            elements.statDefense.textContent = gameData.player.stats.defense;
+            elements.statSpeed.textContent = gameData.player.stats.speed;
+            elements.statDexterity.textContent = gameData.player.stats.dexterity;
+
+            elements.jobManualLabor.textContent = gameData.player.jobStats.manualLabor;
+            elements.jobIntelligence.textContent = gameData.player.jobStats.intelligence;
+            elements.jobTimeManagement.textContent = gameData.player.jobStats.timeManagement;
+            elements.jobOrganization.textContent = gameData.player.jobStats.organization;
+
+            elements.jobPoints.textContent = gameData.player.jpoints;
+
+            if (gameData.player.jpoints > 0) {
+                elements.jobPointsControls.classList.remove('hidden');
+            } else {
+                elements.jobPointsControls.classList.add('hidden');
+            }
+        }
+
+        // Update player info display
+        function updatePlayerInfo() {
+            elements.displayName.textContent = gameData.player.name;
+            elements.playerMoney.textContent = gameData.player.money;
+            elements.playerLevel.textContent = gameData.player.level;
+            elements.playerXp.textContent = gameData.player.xp;
+            elements.playerNextLevel.textContent = gameData.nextLevelXp;
+            elements.xpProgress.value = gameData.player.xp;
+            elements.xpProgress.max = gameData.nextLevelXp;
+            elements.playerHappiness.textContent = gameData.player.happiness;
+            elements.happinessProgress.value = gameData.player.happiness;
+
+            updateStatsDisplay();
+        }
+
+        // Initialize shop items
+        function initShop() {
+            // Clear existing items
+            elements.itemsList.innerHTML = '';
+            elements.housesList.innerHTML = '';
+
+            // Add shop items
+            gameData.shopItems.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'shop-item';
+                itemElement.innerHTML = `
+                    <div>
+                        <h3>${item.name}</h3>
+                        <p>Price: $${item.price}</p>
+                        <p>Happiness: +${item.happiness}%</p>
+                    </div>
+                    <button class="buy-item-button" data-id="${item.id}">Buy</button>
+                `;
+                elements.itemsList.appendChild(itemElement);
+            });
+
+            // Add houses
+            gameData.houses.forEach(house => {
+                const houseElement = document.createElement('div');
+                houseElement.className = 'house-item';
+                houseElement.innerHTML = `
+                    <div>
+                        <h3>${house.name}</h3>
+                        <p>Price: $${house.price}</p>
+                        <p>Happiness: +${house.happiness}%</p>
+                    </div>
+                    <button class="buy-house-button" data-id="${house.id}">Buy</button>
+                `;
+                elements.housesList.appendChild(houseElement);
+            });
+
+            // Add event listeners to buy buttons
+            document.querySelectorAll('.buy-item-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const itemId = parseInt(button.getAttribute('data-id'));
+                    buyItem(itemId);
+                });
+            });
+
+            document.querySelectorAll('.buy-house-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const houseId = parseInt(button.getAttribute('data-id'));
+                    buyHouse(houseId);
+                });
+            });
+        }
+
+        // Buy an item
+        function buyItem(itemId) {
+            const item = gameData.shopItems.find(item => item.id === itemId);
+            if (!item) return;
+
+            if (gameData.player.money >= item.price) {
+                gameData.player.money -= item.price;
+                gameData.player.happiness = Math.min(100, gameData.player.happiness + item.happiness);
+                gameData.player.inventory.push(item);
+                showMessage(`You bought ${item.name}! Happiness increased by ${item.happiness}%`);
+                updatePlayerInfo();
+                updateLeaderboard();
+                saveUserData();
+            } else {
+                showMessage("You don't have enough money!");
+            }
+        }
+
+        // Buy a house
+        function buyHouse(houseId) {
+            const house = gameData.houses.find(house => house.id === houseId);
+            if (!house) return;
+
+            if (gameData.player.money >= house.price) {
+                gameData.player.money -= house.price;
+                gameData.player.house = house;
+                gameData.player.happiness = Math.min(100, gameData.player.happiness + house.happiness);
+                showMessage(`You bought ${house.name}! Happiness increased by ${house.happiness}%`);
+                updatePlayerInfo();
+                updateLeaderboard();
+                saveUserData();
+            } else {
+                showMessage("You don't have enough money!");
+            }
+        }
+
+        // Update the leaderboard
+        function updateLeaderboard() {
+            // Clear existing entries
+            elements.leaderboardBody.innerHTML = '';
+
+            // Get all users and sort by money
+            const users = Object.values(gameData.users);
+            users.sort((a, b) => b.player.money - a.player.money);
+
+            // Add top entries
+            users.slice(0, 10).forEach((user, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${user.player.name}</td>
+                    <td>${user.player.level}</td>
+                    <td>$${user.player.money}</td>
+                `;
+                elements.leaderboardBody.appendChild(row);
+            });
+        }
+
+        // Work function
+        function work() {
+            if (gameData.isWorking) return;
+
+            // Start work cooldown
+            gameData.isWorking = true;
+            gameData.workCooldown = 30; // 30 seconds cooldown
+
+            // Update button and start countdown
+            elements.workButton.disabled = true;
+            updateWorkCooldown();
+
+            // Get job data
+            const job = gameData.jobs[gameData.player.job];
+
+            // Calculate rewards
+            const baseSalary = job.salary;
+            const jobStatBonus = calculateJobStatBonus();
+            const salary = Math.floor(baseSalary * (1 + jobStatBonus / 100));
+
+            // Calculate XP
+            const baseXp = Math.floor(Math.random() * 21) + 30; // 30-50 XP
+            const happinessModifier = gameData.player.happiness / 100;
+            const xpGained = Math.floor(baseXp * happinessModifier * (1 + jobStatBonus / 100));
+
+            // Apply rewards
+            gameData.player.money += salary;
+            gameData.player.xp += xpGained;
+
+            // Increment work count for job point chance
+            gameData.player.workCount++;
+
+            // Check for job point reward (random between 10-50 works)
+            if (gameData.player.workCount >= Math.floor(Math.random() * 41) + 10) {
+                gameData.player.jpoints++;
+                gameData.player.workCount = 0;
+                showMessage(`You received a job point! Use it to improve job skills.`);
+                updateStatsDisplay();
+            }
+
+            // Apply stat boosts from job
+            applyJobStatBoosts(job);
+
+            // Reduce happiness
+            gameData.player.happiness = Math.max(1, gameData.player.happiness - 2);
+
+            // Check for level up
+            checkLevelUp();
+
+            // Show work result
+            showMessage(`You worked as a ${job.name} and earned ${salary} and ${xpGained} XP.`);
+
+            // End work process after delay
+            setTimeout(() => {
+                gameData.isWorking = false;
+                elements.workButton.disabled = false;
+                elements.workCooldown.textContent = '';
+            }, gameData.workCooldown * 1000);
+        }
+
+        // Calculate job stat bonus based on stats
+        function calculateJobStatBonus() {
+            const intelligenceBonus = gameData.player.jobStats.intelligence * 0.1;
+            const manualLaborBonus = gameData.player.jobStats.manualLabor * 0.1;
+            return intelligenceBonus + manualLaborBonus;
+        }
+
+        // Apply job stat boosts
+        function applyJobStatBoosts(job) {
+            for (const stat in job.statBoosts) {
+                gameData.player.jobStats[stat] += job.statBoosts[stat];
+            }
+            updateStatsDisplay();
+        }
+
+        // Check for level up
+        function checkLevelUp() {
+            if (gameData.player.xp >= gameData.nextLevelXp) {
+                gameData.player.level++;
+                gameData.player.xp -= gameData.nextLevelXp;
+                gameData.nextLevelXp = Math.floor(gameData.nextLevelXp * 1.5); // Next level takes 50% more XP
+                showMessage(`Congratulations! You leveled up to Level ${gameData.player.level}.`);
+                updatePlayerInfo();
+            }
+        }
+
+        // Update the work cooldown display
+        function updateWorkCooldown() {
+            elements.workCooldown.textContent = `Work in progress... ${gameData.workCooldown}s remaining`;
+            gameData.workCooldown--;
+            if (gameData.workCooldown <= 0) {
+                return;
+            }
+            setTimeout(updateWorkCooldown, 1000);
+        }
+
+        // Setting up event listeners
+        function setupEventListeners() {
+            elements.loginButton.addEventListener('click', handleLogin);
+            elements.registerButton.addEventListener('click', handleRegister);
+            elements.createCharacter.addEventListener('click', createCharacter);
+            elements.selectJob.addEventListener('click', selectJob);
+            elements.workButton.addEventListener('click', work);
+            elements.showStatsButton.addEventListener('click', toggleStatsDisplay);
+            elements.adminLogin.addEventListener('click', accessAdminPanel);
+            elements.saveGame.addEventListener('click', saveGameData);
+            elements.logout.addEventListener('click', logout);
+
+            // Event listeners for adding stat points
+            elements.strengthPlus.addEventListener('click', () => adjustStat('strength', 1));
+            elements.strengthMinus.addEventListener('click', () => adjustStat('strength', -1));
+            elements.defensePlus.addEventListener('click', () => adjustStat('defense', 1));
+            elements.defenseMinus.addEventListener('click', () => adjustStat('defense', -1));
+            elements.speedPlus.addEventListener('click', () => adjustStat('speed', 1));
+            elements.speedMinus.addEventListener('click', () => adjustStat('speed', -1));
+            elements.dexterityPlus.addEventListener('click', () => adjustStat('dexterity', 1));
+            elements.dexterityMinus.addEventListener('click', () => adjustStat('dexterity', -1));
+
+            // Event listeners for job point allocation
+            elements.addManualLabor.addEventListener('click', () => addJobStat('manualLabor'));
+            elements.addIntelligence.addEventListener('click', () => addJobStat('intelligence'));
+            elements.addTimeManagement.addEventListener('click', () => addJobStat('timeManagement'));
+            elements.addOrganization.addEventListener('click', () => addJobStat('organization'));
+        }
+
+        // Adjust player base stats
+        function adjustStat(stat, delta) {
+            if (delta > 0 && gameData.player.spoints > 0) {
+                gameData.player.stats[stat] += delta;
+                gameData.player.spoints -= delta;
+                updatePlayerStats();
+            } else if (delta < 0 && gameData.player.stats[stat] > 0) {
+                gameData.player.stats[stat] += delta;
+                gameData.player.spoints -= delta;
+                updatePlayerStats();
+            }
+        }
+
+        function updatePlayerStats() {
+            elements.pointsRemaining.textContent = gameData.player.spoints;
+            updateStatsDisplay();
+
+            if (gameData.player.spoints <= 0) {
+                elements.createCharacter.disabled = false;
+            } else {
+                elements.createCharacter.disabled = true;
+            }
+        }
+
+        // Create character and transition to game interface
+        function createCharacter() {
+            const name = elements.playerName.value.trim();
+            if (name) {
+                gameData.player.name = name;
+                currentUser = gameData.player;
+                gameData.users[name] = gameData.player; // Add user data to users database
+                elements.loginPanel.classList.add('hidden');
+                elements.characterCreation.classList.add('hidden');
+                elements.gameInterface.classList.remove('hidden');
+                updatePlayerInfo();
+                showMessage(`Welcome, ${name}!`);
+            } else {
+                showMessage("Please enter a valid character name.");
+            }
+        }
+
+        // Handle user login
+        function handleLogin() {
+            const username = elements.username.value.trim();
+            const password = elements.password.value;
+            if (gameData.users[username] && gameData.users[username].password === password) {
+                currentUser = gameData.users[username];
+                gameData.player = currentUser; // Load user data into gameData
+                elements.loginPanel.classList.add('hidden');
+                elements.gameInterface.classList.remove('hidden');
+                updatePlayerInfo();
+                showMessage(`Logged in as ${username}`);
+            } else {
+                showMessage("Invalid username or password.");
+            }
+        }
+
+        // Handle user registration
+        function handleRegister() {
+            const username = elements.username.value.trim();
+            const password = elements.password.value;
+
+            if (!username || gameData.users[username]) {
+                showMessage("Please choose a different username or fill in the username.");
+                return;
+            }
+
+            // Create new user
+            gameData.users[username] = { ...gameData.player, password: password };
+            showMessage("Registration successful! You may now log in.");
+            elements.username.value = '';
+            elements.password.value = '';
+        }
+
+        // Select job
+        function selectJob() {
+            const selectedJobElement = document.querySelector('.job-card.selected-job');
+            if (selectedJobElement) {
+                const selectedJob = selectedJobElement.getAttribute('data-job');
+                gameData.player.job = selectedJob;
+                currentJob.textContent = gameData.jobs[selectedJob].name;
+                elements.workControls.classList.remove('hidden');
+                updatePlayerInfo();
+                showMessage(`You selected the ${gameData.jobs[selectedJob].name} job!`);
+            }
+        }
+
+        // Toggle stats display
+        function toggleStatsDisplay() {
+            elements.statsDisplay.classList.toggle('hidden');
+        }
+
+        // Access Admin Panel
+        function accessAdminPanel() {
+            const enterCode = elements.adminCode.value;
+            if (enterCode === "Mr.Bee2740") {
+                elements.adminPanel.classList.remove('hidden');
+                showMessage("Admin panel access granted.");
+            } else {
+                showMessage("Invalid admin code.");
+            }
+        }
+
+        // Logout functionality
+        function logout() {
+            elements.loginPanel.classList.remove('hidden');
+            elements.gameInterface.classList.add('hidden');
+            elements.characterCreation.classList.add('hidden');
+            showMessage("Logged out successfully.");
+            currentUser = null;
+        }
+
+        // Admin delete user
+        elements.adminDeleteUser.addEventListener('click', () => {
+            const usernameToDelete = elements.adminUsername.value.trim();
+            if (gameData.users[usernameToDelete]) {
+                delete gameData.users[usernameToDelete];
+                elements.adminMessage.textContent = `${usernameToDelete} has been deleted.`;
+            } else {
+                elements.adminMessage.textContent = "User not found.";
+            }
+        });
+
+        // Admin change username
+        elements.adminChangeName.addEventListener('click', () => {
+            const usernameToChange = elements.adminUsername.value.trim();
+            const newName = elements.adminNewName.value.trim();
+            if (gameData.users[usernameToChange] && !gameData.users[newName]) {
+                gameData.users[newName] = { ...gameData.users[usernameToChange] };
+                delete gameData.users[usernameToChange];
+                elements.adminMessage.textContent = `User changed from ${usernameToChange} to ${newName}.`;
+            } else {
+                elements.adminMessage.textContent = "Invalid user or new username already exists.";
+            }
+        });
+
+        // Start the game
+        initGame();
+    </script>
 </body>
 </html>
