@@ -4,135 +4,778 @@ index.html
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive RPG Game</title>
+    <title>RPG Job Simulator</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: #f1f1f1;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
             padding: 20px;
+            background-color: #f0f0f0;
+            color: #333;
         }
-        #options {
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .game-title {
+            text-align: center;
+            color: #5c6bc0;
             margin-bottom: 20px;
         }
-        button {
-            margin: 5px;
-            padding: 10px 20px;
-            font-size: 16px;
+        .setup-screen, .job-selection, .main-game {
+            display: none;
         }
-        #stats {
-            background: #fff;
+        .intro-screen {
+            text-align: center;
+        }
+        button {
+            background-color: #5c6bc0;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            margin: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3f51b5;
+        }
+        button:disabled {
+            background-color: #9e9e9e;
+            cursor: not-allowed;
+        }
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        .stat-value {
+            font-weight: bold;
+        }
+        .job-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            transition: border-color 0.3s;
+            cursor: pointer;
+        }
+        .job-card:hover {
+            border-color: #5c6bc0;
+            background-color: #f5f5f5;
+        }
+        .job-card.selected {
+            border-color: #5c6bc0;
+            background-color: #e8eaf6;
+        }
+        .job-title {
+            font-weight: bold;
+            color: #3f51b5;
+            margin-bottom: 10px;
+        }
+        .game-section {
+            margin-bottom: 20px;
+        }
+        .flex-row {
+            display: flex;
+            justify-content: space-between;
+        }
+        .stat-points {
+            color: #ff9800;
+            font-weight: bold;
+        }
+        .job-points {
+            color: #4caf50;
+            font-weight: bold;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 20px;
+            background-color: #5c6bc0;
+            border-radius: 5px;
+            text-align: center;
+            color: white;
+            line-height: 20px;
+            transition: width 0.5s;
+        }
+        .stats-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            max-width: 400px;
+            width: 90%;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #757575;
+        }
+        .log-container {
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
             padding: 10px;
-            border: 1px solid #ccc;
             margin-top: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 3px 0;
+            border-bottom: 1px solid #eee;
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h1 class="game-title">RPG Job Simulator</h1>
+        
+        <!-- Intro Screen -->
+        <div id="introScreen" class="intro-screen">
+            <p>Welcome to RPG Job Simulator! Start your career and grow your skills in this simple RPG game.</p>
+            <button id="startGameBtn">Start Game</button>
+        </div>
+        
+        <!-- Character Setup Screen -->
+        <div id="setupScreen" class="setup-screen">
+            <h2>Create Your Character</h2>
+            <div class="form-group">
+                <label for="playerName">Character Name:</label>
+                <input type="text" id="playerName" placeholder="Enter your name">
+            </div>
+            
+            <h3>Base Stats <span class="stat-points">Points Available: <span id="statPointsAvailable">4</span></span></h3>
+            <div class="stat-item">
+                <span>Strength:</span>
+                <div>
+                    <span id="strengthValue" class="stat-value">5</span>
+                    <button id="addStrength" class="stat-btn">+</button>
+                </div>
+            </div>
+            <div class="stat-item">
+                <span>Speed:</span>
+                <div>
+                    <span id="speedValue" class="stat-value">5</span>
+                    <button id="addSpeed" class="stat-btn">+</button>
+                </div>
+            </div>
+            <div class="stat-item">
+                <span>Dexterity:</span>
+                <div>
+                    <span id="dexterityValue" class="stat-value">5</span>
+                    <button id="addDexterity" class="stat-btn">+</button>
+                </div>
+            </div>
+            <div class="stat-item">
+                <span>Defense:</span>
+                <div>
+                    <span id="defenseValue" class="stat-value">5</span>
+                    <button id="addDefense" class="stat-btn">+</button>
+                </div>
+            </div>
+            
+            <button id="confirmCharacterBtn" disabled>Confirm Character</button>
+        </div>
+        
+        <!-- Job Selection Screen -->
+        <div id="jobSelectionScreen" class="job-selection">
+            <h2>Choose Your Job</h2>
+            <p>Select one of the following jobs to start your career:</p>
+            
+            <div id="job1" class="job-card" data-job="office">
+                <div class="job-title">Office Worker</div>
+                <p>A stable job with good intelligence growth and decent pay.</p>
+                <div class="stat-item">
+                    <span>Base Wage:</span>
+                    <span class="stat-value">$50 per work</span>
+                </div>
+                <div class="stat-item">
+                    <span>Stat Boosts:</span>
+                    <span class="stat-value">+2 Intelligence, +1 Organization</span>
+                </div>
+            </div>
+            
+            <div id="job2" class="job-card" data-job="construction">
+                <div class="job-title">Construction Worker</div>
+                <p>Physical labor with high strength growth and good pay.</p>
+                <div class="stat-item">
+                    <span>Base Wage:</span>
+                    <span class="stat-value">$65 per work</span>
+                </div>
+                <div class="stat-item">
+                    <span>Stat Boosts:</span>
+                    <span class="stat-value">+2 Strength, +1 Manual Labor</span>
+                </div>
+            </div>
+            
+            <div id="job3" class="job-card" data-job="delivery">
+                <div class="job-title">Delivery Driver</div>
+                <p>Fast-paced work with speed and time management growth.</p>
+                <div class="stat-item">
+                    <span>Base Wage:</span>
+                    <span class="stat-value">$45 per work</span>
+                </div>
+                <div class="stat-item">
+                    <span>Stat Boosts:</span>
+                    <span class="stat-value">+2 Speed, +1 Time Management</span>
+                </div>
+            </div>
+            
+            <button id="confirmJobBtn" disabled>Confirm Job</button>
+        </div>
+        
+        <!-- Main Game Screen -->
+        <div id="mainGameScreen" class="main-game">
+            <div class="flex-row">
+                <div>
+                    <h2 id="playerNameDisplay"></h2>
+                    <p>Job: <span id="playerJobDisplay"></span></p>
+                </div>
+                <div>
+                    <button id="viewStatsBtn">View Stats</button>
+                </div>
+            </div>
+            
+            <div class="game-section">
+                <div class="flex-row">
+                    <h3>Level: <span id="playerLevel">1</span></h3>
+                    <p>Money: $<span id="playerMoney">0</span></p>
+                </div>
+                <div class="progress-bar">
+                    <div id="xpProgressBar" class="progress-fill" style="width: 0%">0/1000 XP</div>
+                </div>
+            </div>
+            
+            <div class="game-section">
+                <button id="workBtn">Work</button>
+                <span id="workCooldown"></span>
+            </div>
+            
+            <div class="game-section">
+                <h3>Job Skills <span class="job-points">Job Points: <span id="jobPointsAvailable">0</span></span></h3>
+                <div class="stat-item">
+                    <span>Manual Labor:</span>
+                    <div>
+                        <span id="manualLaborValue" class="stat-value">1</span>
+                        <button id="addManualLabor" class="job-stat-btn">+</button>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span>Intelligence:</span>
+                    <div>
+                        <span id="intelligenceValue" class="stat-value">1</span>
+                        <button id="addIntelligence" class="job-stat-btn">+</button>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span>Time Management:</span>
+                    <div>
+                        <span id="timeManagementValue" class="stat-value">1</span>
+                        <button id="addTimeManagement" class="job-stat-btn">+</button>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span>Organization:</span>
+                    <div>
+                        <span id="organizationValue" class="stat-value">1</span>
+                        <button id="addOrganization" class="job-stat-btn">+</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="game-section">
+                <h3>Activity Log</h3>
+                <div id="logContainer" class="log-container"></div>
+            </div>
+        </div>
+        
+        <!-- Stats Popup -->
+        <div id="statsPopup" class="stats-popup">
+            <button id="closeStatsBtn" class="close-btn">×</button>
+            <h2>Character Stats</h2>
+            
+            <h3>Base Stats</h3>
+            <div class="stat-item">
+                <span>Strength:</span>
+                <span id="popupStrength" class="stat-value">5</span>
+            </div>
+            <div class="stat-item">
+                <span>Speed:</span>
+                <span id="popupSpeed" class="stat-value">5</span>
+            </div>
+            <div class="stat-item">
+                <span>Dexterity:</span>
+                <span id="popupDexterity" class="stat-value">5</span>
+            </div>
+            <div class="stat-item">
+                <span>Defense:</span>
+                <span id="popupDefense" class="stat-value">5</span>
+            </div>
+            
+            <h3>Job Skills</h3>
+            <div class="stat-item">
+                <span>Manual Labor:</span>
+                <span id="popupManualLabor" class="stat-value">1</span>
+            </div>
+            <div class="stat-item">
+                <span>Intelligence:</span>
+                <span id="popupIntelligence" class="stat-value">1</span>
+            </div>
+            <div class="stat-item">
+                <span>Time Management:</span>
+                <span id="popupTimeManagement" class="stat-value">1</span>
+            </div>
+            <div class="stat-item">
+                <span>Organization:</span>
+                <span id="popupOrganization" class="stat-value">1</span>
+            </div>
+            
+            <h3>Other Stats</h3>
+            <div class="stat-item">
+                <span>Level:</span>
+                <span id="popupLevel" class="stat-value">1</span>
+            </div>
+            <div class="stat-item">
+                <span>XP:</span>
+                <span id="popupXP" class="stat-value">0/1000</span>
+            </div>
+            <div class="stat-item">
+                <span>Jobs Completed:</span>
+                <span id="popupJobsCompleted" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+                <span>Money Earned:</span>
+                <span id="popupMoneyEarned" class="stat-value">$0</span>
+            </div>
+        </div>
+        
+        <div id="overlay" class="overlay"></div>
+    </div>
 
-<h1>Welcome to the RPG Game</h1>
-<div id="options">
-    <button id="viewStats">View Stats</button>
-    <button id="workButton">Work</button>
-</div>
-<div id="stats"></div>
-
-<script>
-// Character.js
-
-class Character {
-    constructor(name) {
-        this.name = name;
-        this.level = 1;
-        this.xp = 0;
-        this.stats = {
-            intelligence: 5,
-            strength: 5,
-            health: 100,
-            dexterity: 5,
-            speed: 5,
-            aim: 5,
-            defense: 5,
-            endurance: 5,
+    <script>
+        // Game state
+        const gameState = {
+            player: {
+                name: "",
+                job: "",
+                level: 1,
+                xp: 0,
+                money: 0,
+                jobsCompleted: 0,
+                baseStats: {
+                    strength: 5,
+                    speed: 5,
+                    dexterity: 5,
+                    defense: 5
+                },
+                jobStats: {
+                    manualLabor: 1,
+                    intelligence: 1,
+                    timeManagement: 1,
+                    organization: 1
+                },
+                statPoints: 4,
+                jobPoints: 0
+            },
+            workCooldown: 0,
+            worksSinceLastJobPoint: 0,
+            worksForNextJobPoint: getRandomInt(10, 50),
+            selectedJob: null
         };
-        this.job = "Unemployed";
-    }
 
-    displayStats() {
-        return `Name: ${this.name}<br>Level: ${this.level}<br>XP: ${this.xp}<br>Job: ${this.job}<br>Stats: ${JSON.stringify(this.stats)}`;
-    }
-
-    levelUp() {
-        const levelThresholds = [1000, 5000, 12500];
-        if (this.level < levelThresholds.length && this.xp >= levelThresholds[this.level - 1]) {
-            this.level++;
-            this.stats.strength += 2;
-            this.stats.intelligence += 2;
-        }
-    }
-
-    getJob(newJob) {
+        // Level thresholds
+        const levelThresholds = [0, 1000, 2500, 5000, 7500, 10000, 15000, 20000, 30000, 50000];
+        
+        // Job definitions
         const jobs = {
-            Army: { requirements: { strength: 7, intelligence: 4 }, salary: 50 },
-            Cashier: { requirements: { intelligence: 6, dexterity: 5 }, salary: 30 },
-            OfficeWorker: { requirements: { intelligence: 5, speed: 5 }, salary: 20 }
+            office: {
+                title: "Office Worker",
+                baseWage: 50,
+                statBoosts: {
+                    intelligence: 2,
+                    organization: 1
+                }
+            },
+            construction: {
+                title: "Construction Worker",
+                baseWage: 65,
+                statBoosts: {
+                    strength: 2,
+                    manualLabor: 1
+                }
+            },
+            delivery: {
+                title: "Delivery Driver",
+                baseWage: 45,
+                statBoosts: {
+                    speed: 2,
+                    timeManagement: 1
+                }
+            }
         };
 
-        if (jobs[newJob] && this.canGetJob(jobs[newJob])) {
-            this.job = newJob;
-            if (newJob === "Army") this.stats.strength += 1;
-            else if (newJob === "Cashier") this.stats.intelligence += 1;
-            else if (newJob === "OfficeWorker") this.stats.dexterity += 1;
-        }
-    }
+        // DOM Elements
+        const screens = {
+            intro: document.getElementById("introScreen"),
+            setup: document.getElementById("setupScreen"),
+            jobSelection: document.getElementById("jobSelectionScreen"),
+            mainGame: document.getElementById("mainGameScreen")
+        };
 
-    canGetJob(job) {
-        for (let stat in job.requirements) {
-            if (this.stats[stat] < job.requirements[stat]) {
-                return false;
+        // Utility functions
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function calculateXpToNextLevel() {
+            return levelThresholds[gameState.player.level];
+        }
+        
+        function calculateXpGain() {
+            // Base XP between 30-50
+            let baseXp = getRandomInt(30, 50);
+            
+            // Bonus from job skills (each skill adds 2% bonus)
+            let skillBonus = 1 + (
+                (gameState.player.jobStats.manualLabor + 
+                gameState.player.jobStats.intelligence + 
+                gameState.player.jobStats.timeManagement + 
+                gameState.player.jobStats.organization) * 0.02
+            );
+            
+            return Math.floor(baseXp * skillBonus);
+        }
+        
+        function calculateWage() {
+            let job = jobs[gameState.player.job];
+            let baseWage = job.baseWage;
+            
+            // Bonuses from relevant stats
+            let statBonus = 1;
+            if (gameState.player.job === "office") {
+                statBonus += gameState.player.jobStats.intelligence * 0.05;
+                statBonus += gameState.player.jobStats.organization * 0.03;
+            } else if (gameState.player.job === "construction") {
+                statBonus += gameState.player.baseStats.strength * 0.03;
+                statBonus += gameState.player.jobStats.manualLabor * 0.05;
+            } else if (gameState.player.job === "delivery") {
+                statBonus += gameState.player.baseStats.speed * 0.03;
+                statBonus += gameState.player.jobStats.timeManagement * 0.05;
+            }
+            
+            return Math.floor(baseWage * statBonus);
+        }
+        
+        function addLogEntry(message) {
+            const logContainer = document.getElementById("logContainer");
+            const logEntry = document.createElement("div");
+            logEntry.className = "log-entry";
+            logEntry.textContent = message;
+            logContainer.prepend(logEntry);
+            
+            // Limit log entries to 15
+            while (logContainer.children.length > 15) {
+                logContainer.removeChild(logContainer.lastChild);
             }
         }
-        return true;
-    }
-}
-
-// Work.js
-
-class Work {
-    constructor(character) {
-        this.character = character;
-        this.lastWorkTime = 0;
-    }
-
-    work() {
-        const currentTime = Date.now();
-        if (currentTime - this.lastWorkTime < 120000) {
-            return "You need to wait before working again.";
+        
+        function checkLevelUp() {
+            const nextLevelXp = calculateXpToNextLevel();
+            if (gameState.player.xp >= nextLevelXp && gameState.player.level < levelThresholds.length) {
+                gameState.player.level++;
+                addLogEntry(`Congratulations! You have reached level ${gameState.player.level}!`);
+                updateGameUI();
+                return true;
+            }
+            return false;
         }
-
-        const xpGained = Math.floor(Math.random() * (100 - 50 + 1)) + 50;
-        this.character.xp += xpGained;
-        this.character.levelUp();
-        this.lastWorkTime = currentTime;
-        return `${this.character.name} has earned ${xpGained} XP! Current XP: ${this.character.xp}`;
-    }
-}
-
-// Main Game Logic
-
-const player = new Character("Jane Doe");
-const worker = new Work(player);
-player.getJob("Army"); // Automatically assign a job for demonstration
-
-document.getElementById('viewStats').addEventListener('click', function () {
-    const stats = player.displayStats();
-    document.getElementById('stats').innerHTML = stats;
-});
-
-document.getElementById('workButton').addEventListener('click', function () {
-    const workResult = worker.work();
-    document.getElementById('stats').innerHTML = workResult + '<br>' + player.displayStats();
-});
-</script>
-
+        
+        // UI update functions
+        function updateGameUI() {
+            // Update player info
+            document.getElementById("playerNameDisplay").textContent = gameState.player.name;
+            document.getElementById("playerJobDisplay").textContent = jobs[gameState.player.job].title;
+            document.getElementById("playerLevel").textContent = gameState.player.level;
+            document.getElementById("playerMoney").textContent = gameState.player.money;
+            
+            // Update XP bar
+            const nextLevelXp = calculateXpToNextLevel();
+            const xpProgress = Math.min((gameState.player.xp / nextLevelXp) * 100, 100);
+            document.getElementById("xpProgressBar").style.width = `${xpProgress}%`;
+            document.getElementById("xpProgressBar").textContent = `${gameState.player.xp}/${nextLevelXp} XP`;
+            
+            // Update job points
+            document.getElementById("jobPointsAvailable").textContent = gameState.player.jobPoints;
+            
+            // Update job stats values
+            document.getElementById("manualLaborValue").textContent = gameState.player.jobStats.manualLabor;
+            document.getElementById("intelligenceValue").textContent = gameState.player.jobStats.intelligence;
+            document.getElementById("timeManagementValue").textContent = gameState.player.jobStats.timeManagement;
+            document.getElementById("organizationValue").textContent = gameState.player.jobStats.organization;
+            
+            // Update job skill buttons
+            const jobStatButtons = document.querySelectorAll(".job-stat-btn");
+            jobStatButtons.forEach(button => {
+                button.disabled = gameState.player.jobPoints <= 0;
+            });
+            
+            // Update stats popup if open
+            updateStatsPopup();
+        }
+        
+        function updateStatsPopup() {
+            document.getElementById("popupStrength").textContent = gameState.player.baseStats.strength;
+            document.getElementById("popupSpeed").textContent = gameState.player.baseStats.speed;
+            document.getElementById("popupDexterity").textContent = gameState.player.baseStats.dexterity;
+            document.getElementById("popupDefense").textContent = gameState.player.baseStats.defense;
+            
+            document.getElementById("popupManualLabor").textContent = gameState.player.jobStats.manualLabor;
+            document.getElementById("popupIntelligence").textContent = gameState.player.jobStats.intelligence;
+            document.getElementById("popupTimeManagement").textContent = gameState.player.jobStats.timeManagement;
+            document.getElementById("popupOrganization").textContent = gameState.player.jobStats.organization;
+            
+            document.getElementById("popupLevel").textContent = gameState.player.level;
+            document.getElementById("popupXP").textContent = `${gameState.player.xp}/${calculateXpToNextLevel()}`;
+            document.getElementById("popupJobsCompleted").textContent = gameState.player.jobsCompleted;
+            document.getElementById("popupMoneyEarned").textContent = `$${gameState.player.money}`;
+        }
+        
+        function updateCooldownUI() {
+            const workBtn = document.getElementById("workBtn");
+            const cooldownDisplay = document.getElementById("workCooldown");
+            
+            if (gameState.workCooldown > 0) {
+                workBtn.disabled = true;
+                cooldownDisplay.textContent = `(Ready in ${gameState.workCooldown}s)`;
+            } else {
+                workBtn.disabled = false;
+                cooldownDisplay.textContent = "(Ready)";
+            }
+        }
+        
+        // Initialize setup screen
+        function initSetupScreen() {
+            document.getElementById("statPointsAvailable").textContent = gameState.player.statPoints;
+            
+            // Initialize base stat buttons
+            const statButtons = document.querySelectorAll(".stat-btn");
+            statButtons.forEach(button => {
+                button.addEventListener("click", function() {
+                    if (gameState.player.statPoints > 0) {
+                        const statType = this.id.replace("add", "").toLowerCase();
+                        gameState.player.baseStats[statType]++;
+                        gameState.player.statPoints--;
+                        document.getElementById(`${statType}Value`).textContent = gameState.player.baseStats[statType];
+                        document.getElementById("statPointsAvailable").textContent = gameState.player.statPoints;
+                        
+                        // Enable confirm button if name is entered and all points are used
+                        const playerName = document.getElementById("playerName").value;
+                        document.getElementById("confirmCharacterBtn").disabled = !(playerName.trim() && gameState.player.statPoints === 0);
+                    }
+                    
+                    // Disable buttons if no points left
+                    if (gameState.player.statPoints === 0) {
+                        statButtons.forEach(btn => btn.disabled = true);
+                    }
+                });
+            });
+            
+            // Name input validation
+            document.getElementById("playerName").addEventListener("input", function() {
+                const playerName = this.value.trim();
+                const allPointsUsed = gameState.player.statPoints === 0;
+                document.getElementById("confirmCharacterBtn").disabled = !(playerName && allPointsUsed);
+            });
+            
+            // Confirm character button
+            document.getElementById("confirmCharacterBtn").addEventListener("click", function() {
+                gameState.player.name = document.getElementById("playerName").value.trim();
+                showScreen("jobSelection");
+            });
+        }
+        
+        // Initialize job selection screen
+        function initJobSelectionScreen() {
+            const jobCards = document.querySelectorAll(".job-card");
+            jobCards.forEach(card => {
+                card.addEventListener("click", function() {
+                    // Remove selected class from all cards
+                    jobCards.forEach(c => c.classList.remove("selected"));
+                    // Add selected class to clicked card
+                    this.classList.add("selected");
+                    // Update selected job
+                    gameState.selectedJob = this.dataset.job;
+                    // Enable confirm button
+                    document.getElementById("confirmJobBtn").disabled = false;
+                });
+            });
+            
+            // Confirm job button
+            document.getElementById("confirmJobBtn").addEventListener("click", function() {
+                gameState.player.job = gameState.selectedJob;
+                
+                // Apply job stat boosts
+                const jobBoosts = jobs[gameState.player.job].statBoosts;
+                for (const [stat, boost] of Object.entries(jobBoosts)) {
+                    if (gameState.player.baseStats.hasOwnProperty(stat)) {
+                        gameState.player.baseStats[stat] += boost;
+                    } else if (gameState.player.jobStats.hasOwnProperty(stat)) {
+                        gameState.player.jobStats[stat] += boost;
+                    }
+                }
+                
+                showScreen("mainGame");
+                updateGameUI();
+            });
+        }
+        
+        // Initialize main game screen
+        function initMainGameScreen() {
+            // Work button
+            document.getElementById("workBtn").addEventListener("click", function() {
+                if (gameState.workCooldown === 0) {
+                    // Calculate rewards
+                    const xpGain = calculateXpGain();
+                    const wage = calculateWage();
+                    
+                    // Apply rewards
+                    gameState.player.xp += xpGain;
+                    gameState.player.money += wage;
+                    gameState.player.jobsCompleted++;
+                    
+                    // Start cooldown
+                    gameState.workCooldown = 10;
+                    const cooldownInterval = setInterval(() => {
+                        gameState.workCooldown--;
+                        updateCooldownUI();
+                        if (gameState.workCooldown <= 0) {
+                            clearInterval(cooldownInterval);
+                        }
+                    }, 1000);
+                    
+                    // Log activity
+                    addLogEntry(`You worked and earned $${wage} and ${xpGain} XP!`);
+                    
+                    // Check for job point gain
+                    gameState.worksSinceLastJobPoint++;
+                    if (gameState.worksSinceLastJobPoint >= gameState.worksForNextJobPoint) {
+                        gameState.player.jobPoints++;
+                        gameState.worksSinceLastJobPoint = 0;
+                        gameState.worksForNextJobPoint = getRandomInt(10, 50);
+                        addLogEntry(`You gained a job point! You now have ${gameState.player.jobPoints} job points.`);
+                    }
+                    
+                    // Check for level up
+                    checkLevelUp();
+                    
+                    // Update UI
+                    updateGameUI();
+                    updateCooldownUI();
+                }
+            });
+            
+            // Job stat buttons
+            const jobStatButtons = document.querySelectorAll(".job-stat-btn");
+            jobStatButtons.forEach(button => {
+                button.addEventListener("click", function() {
+                    if (gameState.player.jobPoints > 0) {
+                        const statType = this.id.replace("add", "");
+                        const statKey = statType.charAt(0).toLowerCase() + statType.slice(1);
+                        gameState.player.jobStats[statKey]++;
+                        gameState.player.jobPoints--;
+                        document.getElementById(`${statKey}Value`).textContent = gameState.player.jobStats[statKey];
+                        document.getElementById("jobPointsAvailable").textContent = gameState.player.jobPoints;
+                        
+                        // Disable buttons if no points left
+                        if (gameState.player.jobPoints === 0) {
+                            jobStatButtons.forEach(btn => btn.disabled = true);
+                        }
+                        
+                        updateGameUI();
+                    }
+                });
+            });
+            
+            // Stats button
+            document.getElementById("viewStatsBtn").addEventListener("click", showStatsPopup);
+            document.getElementById("closeStatsBtn").addEventListener("click", hideStatsPopup);
+            document.getElementById("overlay").addEventListener("click", hideStatsPopup);
+            
+            // Initial UI update
+            updateGameUI();
+            updateCooldownUI();
+        }
+        
+        function showStatsPopup() {
+            updateStatsPopup();
+            document.getElementById("statsPopup").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
+        }
+        
+        function hideStatsPopup() {
+            document.getElementById("statsPopup").style.display = "none";
+            document.getElementById("overlay").style.display = "none";
+        }
+        
+        function showScreen(screenName) {
+            // Hide all screens
+            for (const screen in screens) {
+                screens[screen].style.display = "none";
+            }
+            
+            // Show selected screen
+            screens[screenName].style.display = "block";
+        }
+        
+        // Initialize game
+        function initGame() {
+            // Start button
+            document.getElementById("startGameBtn").addEventListener("click", function() {
+                showScreen("setup");
+            });
+            
+            // Initialize all screens
+            initSetupScreen();
+            initJobSelectionScreen();
+            initMainGameScreen();
+            
+            // Show intro screen
+            showScreen("intro");
+        }
+        
+        // Start the game when page loads
+        window.onload = initGame;
+    </script>
 </body>
 </html>
